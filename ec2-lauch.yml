@@ -1,0 +1,27 @@
+---
+
+- name: Create instances for Tomcat
+  hosts: 127.0.0.1
+  gather_facts: False
+  vars_files:
+    - roles/ec2/vars/tomcat.yml
+  roles:
+    - ec2
+
+- name: Create instances for mySql
+  hosts: 127.0.0.1
+  gather_facts: False
+  vars_files:
+    - roles/ec2/vars/mysql.yml
+  roles:
+    - ec2
+
+- name: Create instances for Apache(proxy)
+  hosts: 127.0.0.1
+  gather_facts: False
+  vars_files:
+    - roles/ec2/vars/proxy.yml
+  roles:
+    - ec2
+
+

@@ -1,0 +1,20 @@
+---
+- name: install apache2
+  apt: name=apache2 update_cache=yes state=latest
+
+- name: enabled proxy
+  apache2_module: name=proxy state=present
+
+- name: enabled proxy_http
+  apache2_module: name=proxy_http state=present
+
+- name: enabled proxy_balancer
+  apache2_module: name=proxy_balancer state=present
+
+- name: enabled lbmethod_byrequests
+  apache2_module: name=lbmethod_byrequests state=present
+  notify: restart apache2
+
+- name: Configure apache2
+  template: src=000-default.conf.j2 dest=/etc/apache2/sites-enabled/000-default.conf
+  notify: restart apache2

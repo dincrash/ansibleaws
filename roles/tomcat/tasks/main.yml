@@ -1,0 +1,51 @@
+---
+- name: Install Tomcat9
+  apt: name=tomcat9 update_cache=yes
+
+- name: Install Tomcat9 Admin
+  apt: name=tomcat9-admin update_cache=yes
+
+- name: Configure Tomcat users
+  template: src=tomcat-users.xml dest=/etc/tomcat9/
+  notify: restart tomcat9
+
+- name: Copy custom index file to default webapp
+  template: src=index.html dest=/var/lib/tomcat9/webapps/ROOT/
+- name: Create a login user
+  user:
+    name: tomcat9
+    password: tomcat9
+    groups:
+      - root
+    state: present
+- name: Change Ownership of Tomcat home folder
+  shell: /bin/chown tomcat9:tomcat9 /usr/share/tomcat9 /var/lib/tomcat9 -R
+
+- name: Install PIP
+  apt: name=pip state=present
+
+- name: Install lxml
+  pip: name=lxml
+
+- name: Delete content & directory
+  file:
+    state: absent
+    path: /var/lib/tomcat9/webapps/test-1.0-SNAPSHOT.war
+
+- name: get artifact from local repo
+  maven_artifact:
+    group_id: org.example
+    artifact_id: test
+    extension: war
+    version: 1.0-SNAPSHOT
+    repository_url: "http://18.206.254.251:8081/repository/maven/"
+    state: present
+    dest: /var/lib/tomcat9/webapps
+
+- name: Changing perm of webapps, adding "777"
+  file:
+    path: /var/lib/tomcat9/webapps/test-1.0-SNAPSHOT.war
+    state: file
+    owner: tomcat9
+    group: tomcat9
+    mode: 0777

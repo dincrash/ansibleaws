@@ -1,0 +1,34 @@
+---
+
+service_name: mysql
+service_port:
+  - 22
+  - 3306
+  - 8082
+  - 5666
+security_rules:
+  - proto: tcp
+    from_port: 22
+    to_port: 22
+    cidr_ip: 0.0.0.0/0
+  - proto: tcp
+    from_port: 3306
+    to_port: 3306
+    cidr_ip: 0.0.0.0/0
+  - proto: tcp
+    from_port: 8082
+    to_port: 8082
+    cidr_ip: 0.0.0.0/0
+  - proto: tcp
+    from_port: 5666
+    to_port: 5666
+    cidr_ip: 0.0.0.0/0
+  - proto: icmp
+    from_port: -1
+    to_port: -1
+    cidr_ip: 0.0.0.0/0
+
+service_group: mysql-server
+instances_to_lauch: 1
+tag_ec2_name: mysql
+tag_ec2_group: "{{ service_name }}"

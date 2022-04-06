@@ -1,0 +1,11 @@
+---
+
+- name: Check if root login is enabled
+  command: /usr/bin/diff .ssh/authorized_keys /root/.ssh/authorized_keys
+  ignore_errors: yes
+  register: result
+  changed_when: result.stdout != ""
+  
+- name: Enable root login
+  command: /bin/cp .ssh/authorized_keys /root/.ssh/authorized_keys
+  when: result.stdout != ""

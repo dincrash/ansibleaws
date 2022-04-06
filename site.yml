@@ -1,0 +1,28 @@
+---
+
+- hosts: tag_Name_tomcat
+  vars_files:
+    - roles/tomcat/vars/main.yml
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - tomcat
+
+- hosts: tag_Name_mysql
+  vars_files:
+    - roles/mysql/vars/main.yml
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - mysql
+
+- hosts: tag_Name_proxy
+  vars_files:
+    - roles/proxy/vars/main.yml
+  remote_user: ubuntu
+  become: yes
+  roles:
+    - common
+    - proxy
