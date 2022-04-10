@@ -1,0 +1,94 @@
+pipeline {
+  agent any
+  tools {
+    maven 'maven-3.6.3'
+  }
+  environment {
+          NEXUS_VERSION = "nexus3"
+          NEXUS_PROTOCOL = "http"
+          NEXUS_URL = "44.201.192.15:8081"
+          NEXUS_REPOSITORY = "maven"
+          NEXUS_CREDENTIAL_ID = "nexus-user-credentials"
+         
+      }
+  stages {
+    stage("Clone code from VCS") {
+            steps {
+                script {
+                    git 'http://3.83.178.53/capstone.git';
+                }
+            }
+    }
+    stage ('Compile') {
+      steps {
+        script {
+                            // If you are using Windows then you should use "bat" step
+                            // Since unit testing is out of the scope we skip them
+                            sh "mvn clean package"
+                        }
+      }
+     }
+
+     stage ('Testing') {
+           steps {
+             script {
+                                 // If you are using Windows then you should use "bat" step
+                                 // Since unit testing is out of the scope we skip them
+                                 sh "mvn test -DskipTests=true"
+                             }
+           }
+          }
+  stage("Publish to Nexus Repository Manager") {
+            steps {
+                script {
+                    pom = readMavenPom file: "pom.xml";
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+                    artifactPath = filesByGlob[0].path;
+                    artifactExists = fileExists artifactPath;
+                    if(artifactExists) {
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+                        nexusArtifactUploader(
+                            nexusVersion: NEXUS_VERSION,
+                            protocol: NEXUS_PROTOCOL,
+                            nexusUrl: NEXUS_URL,
+                            groupId: pom.groupId,
+                            version: pom.version,
+                            repository: NEXUS_REPOSITORY,
+                            credentialsId: NEXUS_CREDENTIAL_ID,
+                            artifacts: [
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: artifactPath,
+                                type: pom.packaging],
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: "pom.xml",
+                                type: "pom"]
+                            ]
+                        );
+                    } else {
+                        error "*** File: ${artifactPath}, could not be found";
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+          steps {
+            script {
+                def remote = [:]
+                remote.name = '107.20.35.62'
+                remote.host = '107.20.35.62'
+                remote.user = 'ubuntu'
+                remote.password = 'ubuntu'
+                remote.allowAnyHosts = true
+                sshCommand remote: remote, command: "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook --private-key=/opt/cdo/ttt.pem /opt/cdo/ec2-lauch.yml;ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook --private-key=/opt/cdo/ttt.pem /opt/cdo/site.yml;"
+                
+                
+            }
+          }
+        }
+        
+    }
+    
+}
